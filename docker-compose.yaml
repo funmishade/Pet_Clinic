@@ -1,0 +1,98 @@
+version: '3.0'
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.multi
+    container_name: frontend_ui
+    depends_on: 
+      - redis_master
+      - mysqlserver
+    ports:
+      - 8000:8000
+      - 8080:8080
+    environment:
+      - MYSQL_URL=jdbc:mysql mysqlserver petclinic
+      - SERVER_PORT=8080
+    volumes:
+      - petclinicvol:/app
+  redis_master:
+    image: redis:4.0.2
+    container_name: redis_master_cont
+    # depends_on: 
+    #   - redis_master
+    #   - mysqldb
+    # ports:
+    #   - 8000:8000
+    #   - 8080:8080
+    # environment:
+    #   - MYSQL_ROOT_PASSWORD=
+    #   - MYSQL_ALLOW_EMPTY_PASSWORD=true
+    #   - MYSQL_USER=petclinic
+    #   - MYSQL_PASSWORD=petclinic
+    #   - MYSQL_DATABASE=petclinic
+    volumes:
+      - redismasvol:/data
+  redis_slave01:
+    image: redis:4.0.2
+    container_name: redis_slave01_cont
+    depends_on: 
+      - redis_master
+    volumes:
+      - redisslav01vol:/data
+  redis_slave02:
+    image: redis:4.0.2
+    container_name: redis_slave02_cont
+    depends_on: 
+      - redis_master
+    volumes:
+      - redisslav02vol:/data
+  redis_sentinel01:
+    image: redis:4.0.2
+    container_name: redis_sen01_cont
+    depends_on: 
+      - redis_master
+    volumes:
+      - redissen01vol:/data
+  redis_sentinel02:
+    image: redis:4.0.2
+    container_name: redis_sen02_cont
+    depends_on: 
+      - redis_sentinel01
+    volumes:
+      - redissen02vol:/data
+  redis_sentinel03:
+    image: redis:4.0.2
+    container_name: redis_sen03_cont
+    depends_on: 
+      - redis_sentinel01
+    volumes:
+      - redissen03vol:/data
+  mysqlserver:
+    image: mysql:8
+    container_name: mysql_db_cont
+    # depends_on: 
+    #   - redis_master
+    #   - mysqldb
+    # ports:
+    #   - 8000:8000
+    #   - 8080:8080
+    environment:
+      - MYSQL_ROOT_PASSWORD=
+      - MYSQL_ALLOW_EMPTY_PASSWORD=true
+      - MYSQL_USER=petclinic
+      - MYSQL_PASSWORD=petclinic
+      - MYSQL_DATABASE=petclinic
+    volumes:
+      - mysqlvol:/var/lib/mysql
+
+# declarations
+volumes:
+  mysqlvol:
+  redissen03vol:
+  redissen02vol:
+  redissen01vol:
+  redisslav02vol:
+  redisslav01vol:
+  redismasvol:
+  petclinicvol:
